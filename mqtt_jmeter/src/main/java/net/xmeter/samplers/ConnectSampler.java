@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.jmeter.samplers.Entry;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.threads.JMeterContextService;
@@ -28,9 +29,10 @@ public class ConnectSampler extends AbstractMQTTSampler {
 	public SampleResult sample(Entry entry) {
 		SampleResult result = new SampleResult();
 		result.setSampleLabel(getName());
-		
+		logger.log(Level.INFO, "start connect");
 		JMeterVariables vars = JMeterContextService.getContext().getVariables();
 		connection = (MQTTConnection) vars.getObject("conn");
+
 		if (connection != null) {
 			result.sampleStart();
 			result.setSuccessful(false);
@@ -83,9 +85,10 @@ public class ConnectSampler extends AbstractMQTTSampler {
 			result.setResponseCode("502");
 			return result;
 		}
-		
+
 		try {
 			client = MQTT.getInstance(getMqttClientName()).createClient(parameters);
+			System.out.println(client);
 
 			result.sampleStart();
 			connection = client.connect();
@@ -96,25 +99,45 @@ public class ConnectSampler extends AbstractMQTTSampler {
 				vars.putObject("clientId", client.getClientId());	//save client id as thread local variable
 				topicSubscribed.put(client.getClientId(), new HashSet<>());
 				result.setSuccessful(true);
-				result.setResponseData("Successful.".getBytes());
-				result.setResponseMessage(MessageFormat.format("Connection {0} established successfully.", connection));
+				result.setResponseData("Successful111.".getBytes());
+				result.setResponseMessage(MessageFormat.format("Connection {0} established successfully111.", connection));
 				result.setResponseCodeOK();
+				return result;
 			} else {
 				result.setSuccessful(false);
-				result.setResponseMessage(MessageFormat.format("Failed to establish Connection {0}.", connection));
-				result.setResponseData(MessageFormat.format("Client [{0}] failed. Couldn't establish connection.",
+				result.setResponseMessage(MessageFormat.format("Failed to establish Connection {0}22.", connection));
+				result.setResponseData(MessageFormat.format("Client [{0}] failed. Couldn't establish connection22.",
 						client.getClientId()).getBytes());
+//				result.setResponseMessage(MessageFormat.format("Failed to establish Connection {0}22.", "22"));
+//				result.setResponseData(MessageFormat.format("Client [{0}] failed. Couldn't establish connection22.",
+//						"22").getBytes());
 				result.setResponseCode("501");
 			}
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, "Failed to establish Connection " + connection , e);
 			if (result.getEndTime() == 0) result.sampleEnd(); //avoid re-enter sampleEnd()
 			result.setSuccessful(false);
-			result.setResponseMessage(MessageFormat.format("Failed to establish Connection {0}.", connection));
-			result.setResponseData(MessageFormat.format("Client [{0}] failed with exception.", client.getClientId()).getBytes());
+			result.setResponseMessage(MessageFormat.format("Failed to establish Connection {0}.11", connection));
+			result.setResponseData(MessageFormat.format("Client [{0}] failed with exception11.", client.getClientId()).getBytes());
+//			result.setResponseMessage(MessageFormat.format("Failed to establish Connection {0}.11", "3"));
+//			result.setResponseData(MessageFormat.format("Client [{0}] failed with exception11.", "3").getBytes());
 			result.setResponseCode("502");
 		}
-		
+
+		if(result.isSuccessful()){
+			result.setSuccessful(true);
+			result.setResponseData("Successful44.".getBytes());
+			result.setResponseMessage(MessageFormat.format("Connection {0} established successfully44.", connection));
+			result.setResponseCodeOK();
+		}else {
+			result.setSuccessful(false);
+//			result.setResponseMessage(MessageFormat.format("Failed to establish Connection {0}.11", connection));
+//			result.setResponseData(MessageFormat.format("Client [{0}] failed with exception11.", client.getClientId()).getBytes());
+			result.setResponseMessage(MessageFormat.format("Failed to establish Connection {0}.11", "4"));
+			result.setResponseData(MessageFormat.format("Client [{0}] failed with exception11.", "4").getBytes());
+			result.setResponseCode("1003");
+		}
+
 		return result;
 	}
 
